@@ -16,23 +16,23 @@ const errors = {
 }
 
 function formatResponseToRole(rolelabel) {
-  switch (decoded.roleLabel) {
-    case user:
+  switch (rolelabel) {
+    case "user":
       return {};
-    case admin:
+    case "admin":
       return {};
-    case deleveryman:
+    case "deleveryman":
       return { clientCode: 0 };
-    case restaurantOwner:
+    case "restaurantOwner":
       return { clientCode: 0 };
-    case salesman:
+    case "salesman":
       return { clientCode: 0 };
-    case technician:
+    case "technician":
       return {};
-    case developer:
+    case "developer":
       return {};
     default:
-      return {};
+      return { clientCode: 0, restaurantId: 0, clientId: 0, deliverymanId: 0 };
   }
 }
 module.exports = {
@@ -111,11 +111,27 @@ module.exports = {
     return 'Order deleted successfully';
   },
   createOrder: async (req, res) => {
-    const { date, clientCode, statusId, restaurantId, clientId, deliverymanId } = req.body;
+    console.log(req.body)
+    // const { date, clientCode, statusId, restaurantId, clientId, deliverymanId } = req.body;
+    const articleList = req.body.articleList;
+    const date = req.body.date;
+    const clientCode = req.body.clientCode;
+    const statusId = req.body.statusId;
+    const restaurantId = req.body.restaurantId;
+    const clientId = req.body.clientId;
+    const deliverymanId = req.body.deliverymanId;
+    // console.log(articleList)
+    // console.log(date);
+    // console.log(clientCode);
+    // console.log(statusId);
+    // console.log(restaurantId);
+    // console.log(clientId);
 
-    if (!date || !clientCode || !statusId || !restaurantId || !clientId) return errors.missingRequiredParams;
-
-    Order.create({ date, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    if ( !date || !clientCode || !statusId || !restaurantId || !clientId) return errors.missingRequiredParams;
+    const validatedDate = new Date(date)
+    console.log(validatedDate);
+    console.log(new Date())
+    await Order.create({ date, clientCode, statusId, restaurantId, clientId, deliverymanId });
     return 'Order created successfully';
   }
 }
