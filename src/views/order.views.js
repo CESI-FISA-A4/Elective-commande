@@ -1,7 +1,6 @@
 const { mongoose, isValidObjectId } = require("mongoose");
 const { Order } = require("../models/order.model");
 const { Status } = require("../models/status.model");
-const secretKey = process.env.JWT_SIGN_SECRET;
 
 const errors = {
   invalidId: (() => {
@@ -43,6 +42,7 @@ function formatResponseToRole(rolelabel) {
     case "developer":
       return {};
     default:
+      // return {};
       return { clientCode: 0, restaurantId: 0, clientId: 0, deliverymanId: 0 };
   }
 }
@@ -101,10 +101,10 @@ module.exports = {
 
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleIdList && !date && !clientCode && !status && !restaurantId && !clientId && !deliverymanId) return errors.missingRequiredParams;
-    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
+    if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, statusId, restaurantId, clientId, deliverymanId });
     return 'Order updated successfully';
   },
   putOrder: async (req, res) => {
@@ -115,7 +115,7 @@ module.exports = {
 
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleIdList || !date || !clientCode || !status || !restaurantId || !clientId || !deliverymanId) return errors.missingRequiredParams;
-    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
+    if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
     await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, restaurantId, clientId, deliverymanId });
@@ -131,14 +131,15 @@ module.exports = {
     return 'Order deleted successfully';
   },
   createOrder: async (req, res) => {
-    const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleIdList, date, clientCode, restaurantId, clientId, deliverymanId } = req.body;
     const validatedDate = new Date(date);
+    const status = req.body.status ?? "orderChecking";
     const statusId = await Status.findOne({ state: { $eq: status } });
 
-    if (!date || !clientCode || !status || !restaurantId || !clientId) return errors.missingRequiredParams;
-    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
-    if (!statusId) return errors.statusNotFound;
-
+    if (!date || !clientCode || !restaurantId || !clientId) return errors.missingRequiredParams;
+    if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
+    if (status && !statusId) return errors.statusNotFound;
+    
     await Order.create({ articleIdList, date, clientCode, statusId, restaurantId, clientId, deliverymanId });
     return 'Order created successfully';
   }

@@ -2,7 +2,7 @@ const orderProperties = {
   articleIdList: { type: "array", items: { type: "string" } },
   date: { type: "string" },
   clientCode: { type: "string" },
-  status: { type: "string", default: "orderChecking"},
+  status: { type: "string" },
   restaurantId: { type: "string" },
   clientId: { type: "string" },
   deliverymanId: { type: "string" }
