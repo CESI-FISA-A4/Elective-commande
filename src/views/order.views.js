@@ -1,5 +1,6 @@
 const { mongoose, isValidObjectId } = require("mongoose");
 const { Order } = require("../models/order.model");
+const { Status } = require("../models/status.model");
 const secretKey = process.env.JWT_SIGN_SECRET;
 
 const errors = {
@@ -10,6 +11,16 @@ const errors = {
   })(),
   missingRequiredParams: (() => {
     const err = Error("Not all required parameters filled");
+    err.statusCode = 400;
+    return err;
+  })(),
+  invalidDateFormat: (() => {
+    const err = Error("Unsupported Date format, ex: 2024-04-04T17:45:50.705Z");
+    err.statusCode = 400;
+    return err;
+  })(),
+  statusNotFound: (() => {
+    const err = Error("Specified status does not exists");
     err.statusCode = 400;
     return err;
   })(),
@@ -84,22 +95,30 @@ module.exports = {
   },
   patchOrder: async (req, res) => {
     const { id } = req.params;
-    const { date, clientCode, statusId, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const validatedDate = new Date(date);
+    const statusId = await Status.findOne({ state: { $eq: status } });
 
     if (!isValidObjectId(id)) return errors.invalidId;
-    if (!(date || clientCode || statusId || restaurantId || clientId || deliverymanId)) return errors.missingRequiredParams;
+    if (!articleIdList && !date && !clientCode && !status && !restaurantId && !clientId && !deliverymanId) return errors.missingRequiredParams;
+    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
+    if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { date, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, restaurantId, clientId, deliverymanId });
     return 'Order updated successfully';
   },
   putOrder: async (req, res) => {
     const { id } = req.params;
-    const { date, clientCode, statusId, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const validatedDate = new Date(date);
+    const statusId = await Status.findOne({ state: { $eq: status } });
 
     if (!isValidObjectId(id)) return errors.invalidId;
-    if (!date || !clientCode || !statusId || !restaurantId || !clientId || !deliverymanId) return errors.missingRequiredParams;
+    if (!articleIdList || !date || !clientCode || !status || !restaurantId || !clientId || !deliverymanId) return errors.missingRequiredParams;
+    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
+    if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { date, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, restaurantId, clientId, deliverymanId });
     return 'Order updated successfully';
   },
   deleteOrder: async (req, res) => {
@@ -107,31 +126,20 @@ module.exports = {
 
     if (!isValidObjectId(id)) return errors.invalidId;
 
-    await Order.findByIdAndDelete(id)
+    const a = await Order.findByIdAndDelete(id)
+    console.log(a);
     return 'Order deleted successfully';
   },
   createOrder: async (req, res) => {
-    console.log(req.body)
-    // const { date, clientCode, statusId, restaurantId, clientId, deliverymanId } = req.body;
-    const articleList = req.body.articleList;
-    const date = req.body.date;
-    const clientCode = req.body.clientCode;
-    const statusId = req.body.statusId;
-    const restaurantId = req.body.restaurantId;
-    const clientId = req.body.clientId;
-    const deliverymanId = req.body.deliverymanId;
-    // console.log(articleList)
-    // console.log(date);
-    // console.log(clientCode);
-    // console.log(statusId);
-    // console.log(restaurantId);
-    // console.log(clientId);
+    const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const validatedDate = new Date(date);
+    const statusId = await Status.findOne({ state: { $eq: status } });
 
-    if ( !date || !clientCode || !statusId || !restaurantId || !clientId) return errors.missingRequiredParams;
-    const validatedDate = new Date(date)
-    console.log(validatedDate);
-    console.log(new Date())
-    await Order.create({ date, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    if (!date || !clientCode || !status || !restaurantId || !clientId) return errors.missingRequiredParams;
+    if (!validatedDate || validatedDate == "Invalid Date") return errors.invalidDateFormat;
+    if (!statusId) return errors.statusNotFound;
+
+    await Order.create({ articleIdList, date, clientCode, statusId, restaurantId, clientId, deliverymanId });
     return 'Order created successfully';
   }
 }

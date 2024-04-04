@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const orderModel = new mongoose.Schema({
-  articleList: Object,
+  articleIdList: [mongoose.Schema.ObjectId],
   date: Date,
   clientCode: String,
   statusId: mongoose.Schema.ObjectId,

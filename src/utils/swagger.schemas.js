@@ -1,8 +1,8 @@
 const orderProperties = {
-  articleList: { type: "array", items: { type: "number" } },
+  articleIdList: { type: "array", items: { type: "string" } },
   date: { type: "string" },
   clientCode: { type: "string" },
-  statusId: { type: "string" },
+  status: { type: "string", default: "orderChecking"},
   restaurantId: { type: "string" },
   clientId: { type: "string" },
   deliverymanId: { type: "string" }
@@ -11,13 +11,14 @@ const statusProperties = {
   state: { type: "string" }
 }
 module.exports = {
+  //Orders
   schemaCreateOrders: {
     schema: {
       description: 'Create a new order',
       tags: ["Order"],
       body: {
         type: 'object',
-        required: ["articleList", "date", "clientCode", "statusId", "restaurantId", "clientId"],
+        required: ["articleIdList", "date", "clientCode", "restaurantId", "clientId"],
         properties: orderProperties
       }
     }
@@ -38,7 +39,7 @@ module.exports = {
       },
       body: {
         type: 'object',
-        required: ["articleList", "date", "clientCode", "statusId", "restaurantId", "clientId"],
+        required: ["articleList", "date", "clientCode", "status", "restaurantId", "clientId"],
         properties: orderProperties
       }
     }
@@ -118,23 +119,9 @@ module.exports = {
       }
     }
   },
-  schemaGetOrderbyId: {    schema: {
-    description: 'Get specified order',
-    tags: ["Order"],
-    params: {
-      type: 'object',
-      required: ["id"],
-      properties: {
-        id: {
-          type: 'string',
-          description: 'Order id'
-        }
-      }
-    }
-  }},
-  schemaDeleteOrder: {
+  schemaGetOrderbyId: {
     schema: {
-      description: 'Delete specified order',
+      description: 'Get specified order',
       tags: ["Order"],
       params: {
         type: 'object',
@@ -164,7 +151,23 @@ module.exports = {
       }
     }
   },
-// Status
+  schemaDeleteOrder: {
+    schema: {
+      description: 'Delete specified order',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      }
+    }
+  },
+  // Status
   schemaGetStatusbyId: {
     schema: {
       description: 'Get specified Status',
