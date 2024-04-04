@@ -3,6 +3,7 @@ const orderRoutes = require('./src/routes/order.routes');
 const { initDatabase } = require('./src/utils/initMongoDB');
 const { setupSwagger } = require('./src/utils/swagger');
 const { subscribeToApiGateway } = require('./src/utils/registrySubscription');
+const statusRoutes = require('./src/routes/status.routes');
 
 const fastify = require("fastify")();
 const PORT = process.env.PORT;
@@ -13,6 +14,7 @@ setupSwagger(fastify);
 subscribeToApiGateway();
 
 fastify.register(orderRoutes, { prefix: "/api/orders" });
+fastify.register(statusRoutes, { prefix: "/api/status" });
 
 fastify.listen({ port: PORT, host: HOST }, (err) => {
   if (err) {
