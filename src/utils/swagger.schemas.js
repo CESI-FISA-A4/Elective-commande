@@ -69,53 +69,19 @@ module.exports = {
     schema: {
       description: 'Get all orders',
       tags: ["Order"],
-    }
-  },
-  schemaGetOrderbyClientId: {
-    schema: {
-      description: 'Get the orders related to a specific client',
-      tags: ["Order"],
-      params: {
-        type: 'object',
-        required: ["id"],
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Client id'
-          }
-        }
-      }
-    }
-  },
-  schemaGetOrderbyRestaurantId: {
-    schema: {
-      description: 'Get the orders related to a specific restaurant',
-      tags: ["Order"],
-      params: {
-        type: 'object',
-        required: ["id"],
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Restaurant id'
-          }
-        }
-      }
-    }
-  },
-  schemaGetOrderbyDeliverymanId: {
-    schema: {
-      description: 'Get the orders related to a specific deliveryman',
-      tags: ["Order"],
-      params: {
-        type: 'object',
-        required: ["id"],
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Deliveryman id'
-          }
-        }
+      query: {
+        restaurantid: {
+          type: 'string',
+          description: 'Client id'
+        },
+        clienttid: {
+          type: 'string',
+          description: 'Client id'
+        },
+        deliverymanid: {
+          type: 'string',
+          description: 'Client id'
+        },
       }
     }
   },

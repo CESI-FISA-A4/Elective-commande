@@ -15,7 +15,7 @@ subscribeToApiGateway();
 setupStatus()
 
 fastify.register(orderRoutes, { prefix: "/api/orders" });
-fastify.register(statusRoutes, { prefix: "/api/status" });
+fastify.register(statusRoutes, { prefix: "/api/orders/status" });
 
 fastify.listen({ port: PORT, host: HOST }, (err) => {
   if (err) {
