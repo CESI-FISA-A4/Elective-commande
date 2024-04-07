@@ -51,8 +51,7 @@ function formatResponseToRole(rolelabel) {
   }
 }
 function filterQueryToRole(userId, roleLabel, query) {
-  console.log(query);
-  var filter = {};
+  let filter = {};
   switch (roleLabel) {
     case "user":
       return { clientId: { $eq: userId } };
@@ -60,16 +59,6 @@ function filterQueryToRole(userId, roleLabel, query) {
       return { deliverymanId: { $eq: userId } };
     case "restaurantOwner":
       return { restaurantId: { $eq: userId } };
-    case "admin":
-      if (query.restaurantid) filter["restaurantId"] = { $eq: query.restaurantid }
-      if (query.deliverymanid) filter["deliverymanId"] = { $eq: query.deliverymanid }
-      if (query.clienttid) filter["clientId"] = { $eq: query.clienttid }
-      return filter
-    case "salesman":
-      if (query.restaurantid) filter["restaurantId"] = { $eq: query.restaurantid }
-      if (query.deliverymanid) filter["deliverymanId"] = { $eq: query.deliverymanid }
-      if (query.clienttid) filter["clientId"] = { $eq: query.clienttid }
-      return filter
     default:
       if (query.restaurantid) filter["restaurantId"] = { $eq: query.restaurantid }
       if (query.deliverymanid) filter["deliverymanId"] = { $eq: query.deliverymanid }
