@@ -23,6 +23,11 @@ const errors = {
     err.statusCode = 400;
     return err;
   })(),
+  invalidPermissions: (() => {
+    const err = Error("You do not have the right to alter this order");
+    err.statusCode = 403;
+    return err;
+  })()
 }
 
 function formatResponseToRole(rolelabel) {
@@ -75,28 +80,36 @@ function filterQueryToRole(userId, roleLabel, query) {
 module.exports = {
   getOrderbyId: async (req, res) => {
     const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+
+    const format = formatResponseToRole(roleLabel);
+    const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
+    filter["id"] = id;
 
     if (!isValidObjectId(id)) return errors.invalidId;
-    const { userId, roleLabel } = req.query;
-    const format = formatResponseToRole(roleLabel);
 
-    const orders = await Order.findById(id, format);
+    const orders = await Order.findById(filter, format);
     return orders;
   },
   getOrders: async (req, res) => {
     const { userId, roleLabel, restaurantid, clienttid, deliverymanid } = req.query;
+
     const format = formatResponseToRole(roleLabel);
     const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
-    console.log(filter);
+
     const allOrders = await Order.find(filter, format);
     return allOrders;
   },
   patchOrder: async (req, res) => {
     const { id } = req.params;
     const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const { userId, roleLabel } = req.query;
+
     const validatedDate = new Date(date);
     const statusId = await Status.findOne({ state: { $eq: status } });
+    const targetOrder = await Order.findById(id);
 
+    if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleIdList && !date && !clientCode && !status && !restaurantId && !clientId && !deliverymanId) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
@@ -108,9 +121,13 @@ module.exports = {
   putOrder: async (req, res) => {
     const { id } = req.params;
     const { articleIdList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const { userId, roleLabel } = req.query;
+
     const validatedDate = new Date(date);
     const statusId = await Status.findOne({ state: { $eq: status } });
+    const targetOrder = await Order.findById(id);
 
+    if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleIdList || !date || !clientCode || !status || !restaurantId || !clientId || !deliverymanId) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
@@ -121,7 +138,10 @@ module.exports = {
   },
   deleteOrder: async (req, res) => {
     const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+    const targetOrder = await Order.findById(id);
 
+    if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (!isValidObjectId(id)) return errors.invalidId;
 
     const a = await Order.findByIdAndDelete(id)
