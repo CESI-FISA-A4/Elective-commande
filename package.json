@@ -1,0 +1,22 @@
+{
+  "name": "elective-commande",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^3.0.0",
+    "axios": "^1.6.8",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.2",
+    "mongo-sanitize": "^1.1.0",
+    "mongoose": "^8.2.3"
+  }
+}
