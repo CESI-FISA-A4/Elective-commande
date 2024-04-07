@@ -15,9 +15,17 @@ module.exports = {
       staticCSP: true,
       transformStaticCSP: (header) => header,
       transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
-      transformSpecificationClone: true
+      transformSpecificationClone: true,
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'apiKey',
+            in: 'header'
+          }
+        }
+      }
     })
-
     await fastify.ready()
   }
 }

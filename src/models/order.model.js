@@ -6,7 +6,7 @@ const orderModel = new mongoose.Schema({
   clientCode: String,
   statusId: mongoose.Schema.ObjectId,
   restaurantId: mongoose.Schema.ObjectId,
-  clientId: mongoose.Schema.ObjectId,
+  clientId: Number,
   deliverymanId: mongoose.Schema.ObjectId
 });
 const Order = mongoose.model('Order', orderModel);
