@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const orderModel = new mongoose.Schema({
-  articleIdList: [mongoose.Schema.ObjectId],
-  date: Date,
+  articleList: [{ type: mongoose.Schema.ObjectId, ref:"Article"}],
+  date: { type:String, default: Date},
   clientCode: String,
   status: { type: mongoose.Schema.ObjectId, ref:"Status"},
   restaurantId: mongoose.Schema.ObjectId,

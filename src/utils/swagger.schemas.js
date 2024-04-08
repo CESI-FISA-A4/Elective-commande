@@ -1,6 +1,5 @@
 const orderProperties = {
-  articleIdList: { type: "array", items: { type: "string" } },
-  date: { type: "string" },
+  articleList: { type: "array", items: { type: "string" } },
   clientCode: { type: "string" },
   status: { type: "string" },
   restaurantId: { type: "string" },
@@ -18,8 +17,11 @@ module.exports = {
       tags: ["Order"],
       body: {
         type: 'object',
-        required: ["articleIdList", "date", "clientCode", "restaurantId"],
-        properties: orderProperties
+        required: ["articleList", "restaurantId"],
+        properties: {
+          articleList: { type: "array", items: { type: "string" } },
+          restaurantId: { type: "string" }
+        }
       }
     }
   },
@@ -81,7 +83,7 @@ module.exports = {
       },
       body: {
         type: 'object',
-        required: ["articleList", "date", "clientCode", "status", "restaurantId", "clientId"],
+        required: ["articleList", "clientCode", "status", "restaurantId", "clientId"],
         properties: orderProperties
       }
     }
