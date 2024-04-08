@@ -113,7 +113,7 @@ module.exports = {
     if (statusid) filter["statusId"] = statusid;
 
     const allOrders = await Order.find(filter, format).populate("status").populate("articleList");
-    await allOrders.map((order) => {
+    allOrders.map((order) => {
       let price = 0;
       order.articleList.map((article) => {
         price += article.price;
@@ -121,8 +121,6 @@ module.exports = {
       order.set("totalPrice", price, { strict: false });
       order.depopulate("articleList");
     });
-
-    console.log();
     return allOrders;
   },
   restaurantCheck: async (req, res) => {
@@ -185,19 +183,9 @@ module.exports = {
     return module.exports.patchOrder(req, res);
   },
   cancelOrder: async (req, res) => {
-    const { id } = req.params;
-    const { userId, roleLabel } = req.query;
-
-    if (!isValidObjectId(id)) return errors.invalidId;
-    const statusId = await Status.findOne({ state: { $eq: "aborted" } });
-
-
-    const targetOrder = await Order.findById(id);
-    if (!targetOrder) return errors.invalidId;
-
-    targetOrder.status = statusId._id
-    await targetOrder.updateOne();
-    return 'Order canceled successfully';
+    req.body = {};
+    req.body["status"] = "aborted";
+    return module.exports.patchOrder(req, res);
   },
   patchOrder: async (req, res) => {
     const { id } = req.params;
@@ -208,8 +196,11 @@ module.exports = {
     const statusId = await Status.findOne({ state: { $eq: status } });
     const targetOrder = await Order.findById(id).populate("status");
 
-    if (roleLabel == "user" && targetOrder.status.state != "orderChecking") return errors.tooLatetoUpdate;
-    if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
+    if (roleLabel == "user"){
+      if (targetOrder.status.state != "orderChecking" && status != "aborted") return errors.tooLatetoUpdate;
+      if (status == "aborted" && targetOrder.status.state == "delivered") return errors.tooLatetoUpdate;
+      if (targetOrder.clientId != userId) return errors.invalidPermissions;
+    }
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleList && !date && !clientCode && !status && !restaurantId && !clientId && !deliverymanId) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
