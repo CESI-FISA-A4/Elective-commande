@@ -69,7 +69,7 @@ function filterQueryToRole(userId, roleLabel, query) {
     case "deleveryman":
       return { deliverymanId: { $eq: userId } };
     case "restaurantOwner":
-      return { restaurantId: { $eq: userId } };
+      return { restaurantId: { $eq: query.restaurantid } };
     default:
       if (query.restaurantid) filter["restaurantId"] = { $eq: query.restaurantid }
       if (query.deliverymanid) filter["deliverymanId"] = { $eq: query.deliverymanid }
@@ -157,7 +157,7 @@ module.exports = {
     const { userId, roleLabel } = req.query;
     const targetOrder = await Order.findById(id);
     const prevStep = await Status.findOne({ state: { $eq: "delivering" } });
-    console.log(targetOrder.deliverymanId,userId);
+    
     if (roleLabel == "deliveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
     if (!prevStep) return errors.statusNotFound;
     if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
