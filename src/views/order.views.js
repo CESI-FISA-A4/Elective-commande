@@ -16,7 +16,7 @@ const errors = {
     return err;
   })(),
   invalidDateFormat: (() => {
-    const err = Error("Unsupported Date format, ex: 2024-04-04T17:45:50.705Z");
+    const err = Error("Unsupported Date format, format : YYYY/MM/DD hh:mm");
     err.statusCode = 400;
     return err;
   })(),
