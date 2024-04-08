@@ -82,7 +82,7 @@ module.exports = {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
     const format = formatResponseToRole(roleLabel);
-    const targetOrder = await Order.findById(id, format);
+    const targetOrder = await Order.findById(id, format).populate("status");
 
     if (roleLabel == "restaurantOwner") {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId)
@@ -98,24 +98,23 @@ module.exports = {
     const { userId, roleLabel, restaurantid, clienttid, deliverymanid, statusid } = req.query;
     const format = formatResponseToRole(roleLabel);
     const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
+    const statusList = await Status.find();
 
     if (statusid) filter["statusId"] = statusid;
 
-    const allOrders = await Order.find(filter, format);
+    const allOrders = await Order.find(filter, format).populate("status");
     return allOrders;
   },
   restaurantCheck: async (req, res) => {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
-    const targetOrder = await Order.findById(id);
-    const prevStep = await Status.findOne({ state: { $eq: "orderChecking" } });
+    const targetOrder = await Order.findById(id).populate("status");
 
     if (roleLabel == "restaurantOwner") {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
       if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
     }
-    if (!prevStep) return errors.statusNotFound;
-    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+    if (targetOrder.status.state != "orderChecking") return errors.statusNotFound;
 
     req.body = {};
     req.body["status"] = "deliveryChecking";
@@ -123,30 +122,27 @@ module.exports = {
   },
   deliverymanCheck: async (req, res) => {
     const { id } = req.params;
-    const { userId, roleLabel } = req.query;
-    const targetOrder = await Order.findById(id);
-    const prevStep = await Status.findOne({ state: { $eq: "deliveryChecking" } });
+    const { userId, roleLabel, deliverymanid } = req.query;
+    const targetOrder = await Order.findById(id).populate("status");
 
-    if (!prevStep) return errors.statusNotFound;
-    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+    if (targetOrder.status.state != "orderChecking") return errors.statusNotFound;
 
     req.body = {};
     req.body["status"] = "preparing";
-    req.body["deliverymanId"] = userId;
+    if (roleLabel == "deliveryman") req.body["deliverymanId"] = userId;
+    else if (roleLabel == "admin") req.body["deliverymanId"] = deliverymanid;
     return module.exports.patchOrder(req, res);
   },
   restaurantPrepared: async (req, res) => {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
-    const targetOrder = await Order.findById(id);
-    const prevStep = await Status.findOne({ state: { $eq: "preparing" } });
+    const targetOrder = await Order.findById(id).populate("status");
 
     if (roleLabel == "restaurantOwner") {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
       if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
     }
-    if (!prevStep) return errors.statusNotFound;
-    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+    if (targetOrder.status.state != "preparing") return errors.statusNotFound;
 
     req.body = {};
     req.body["status"] = "delivering";
@@ -155,12 +151,10 @@ module.exports = {
   deliverymanDelivered: async (req, res) => {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
-    const targetOrder = await Order.findById(id);
-    const prevStep = await Status.findOne({ state: { $eq: "delivering" } });
-    
+    const targetOrder = await Order.findById(id).populate("status");
+
     if (roleLabel == "deliveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
-    if (!prevStep) return errors.statusNotFound;
-    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+    if (targetOrder.status.state != "delivering") return errors.statusNotFound;
     if (req.body.code != targetOrder.clientCode) return errors.wrongCode;
 
     req.body = {};
@@ -182,7 +176,7 @@ module.exports = {
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
     return 'Order updated successfully';
   },
   putOrder: async (req, res) => {
@@ -227,7 +221,7 @@ module.exports = {
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.create({ articleIdList, date, clientCode, statusId, restaurantId, clientId, deliverymanId });
+    await Order.create({ articleIdList, date, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
     return 'Order created successfully';
   }
 }
