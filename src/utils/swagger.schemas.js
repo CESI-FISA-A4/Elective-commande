@@ -2,6 +2,7 @@ const orderProperties = {
   articleList: {
     type: "array", items: {
       type: "object",
+      required: ["article", "quantity"],
       properties: {
         article: { type: "string" },
         quantity: { type: "number" }
@@ -30,6 +31,7 @@ module.exports = {
           articleList: {
             type: "array", items: {
               type: "object",
+              required: ["article", "quantity"],
               properties: {
                 article: { type: "string" },
                 quantity: { type: "number" }
