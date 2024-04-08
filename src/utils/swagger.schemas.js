@@ -72,7 +72,7 @@ module.exports = {
       query: {
         restaurantid: {
           type: 'string',
-          description: 'Client id'
+          description: 'restaurant id'
         },
         clienttid: {
           type: 'string',
@@ -80,8 +80,12 @@ module.exports = {
         },
         deliverymanid: {
           type: 'string',
-          description: 'Client id'
+          description: 'deliveryman id'
         },
+        statusid: {
+          type: 'string',
+          description: 'status id'
+        }
       }
     }
   },

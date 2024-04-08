@@ -1,4 +1,4 @@
-const { mongoose, isValidObjectId } = require("mongoose");
+const { isValidObjectId } = require("mongoose");
 const { Order } = require("../models/order.model");
 const { Status } = require("../models/status.model");
 
@@ -81,10 +81,11 @@ module.exports = {
     return orders;
   },
   getOrders: async (req, res) => {
-    const { userId, roleLabel, restaurantid, clienttid, deliverymanid } = req.query;
+    const { userId, roleLabel, restaurantid, clienttid, deliverymanid, statusid } = req.query;
 
     const format = formatResponseToRole(roleLabel);
     const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
+    if (statusid) filter["statusId"] = statusid;
 
     const allOrders = await Order.find(filter, format);
     return allOrders;
