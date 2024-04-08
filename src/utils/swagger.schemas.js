@@ -1,10 +1,19 @@
 const orderProperties = {
-  articleList: { type: "array", items: { type: "string" } },
+  articleList: {
+    type: "array", items: {
+      type: "object",
+      required: ["article", "quantity"],
+      properties: {
+        article: { type: "string" },
+        quantity: { type: "number" }
+      }
+    }
+  },
   clientCode: { type: "string" },
   status: { type: "string" },
   restaurantId: { type: "string" },
-  clientId: { type: "string" },
-  deliverymanId: { type: "string" }
+  clientId: { type: "number" },
+  deliverymanId: { type: "number" }
 }
 const statusProperties = {
   state: { type: "string" }
@@ -19,7 +28,16 @@ module.exports = {
         type: 'object',
         required: ["articleList", "restaurantId"],
         properties: {
-          articleList: { type: "array", items: { type: "string" } },
+          articleList: {
+            type: "array", items: {
+              type: "object",
+              required: ["article", "quantity"],
+              properties: {
+                article: { type: "string" },
+                quantity: { type: "number" }
+              }
+            }
+          },
           restaurantId: { type: "string" }
         }
       }

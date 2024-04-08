@@ -98,8 +98,8 @@ module.exports = {
     if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (roleLabel == "deleveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
     let price = 0;
-    targetOrder.articleList.map((article) => {
-      price += article.price;
+    targetOrder.articleList.map((selectedArticle) => {
+      price += selectedArticle?.article?.price * selectedArticle.quantity;
     });
     targetOrder.set("totalPrice", price, { strict: false });
     targetOrder.depopulate("articleList");
@@ -112,14 +112,13 @@ module.exports = {
 
     if (statusid) filter["statusId"] = statusid;
 
-    const allOrders = await Order.find(filter, format).populate("status").populate("articleList");
+    const allOrders = await Order.find(filter, format).populate("status").populate("articleList.article");
     allOrders.map((order) => {
       let price = 0;
-      order.articleList.map((article) => {
-        price += article.price;
+      order.articleList.map((selectedArticle) => {
+        price += selectedArticle?.article?.price * selectedArticle.quantity;
       });
       order.set("totalPrice", price, { strict: false });
-      order.depopulate("articleList");
     });
     return allOrders;
   },
@@ -196,7 +195,7 @@ module.exports = {
     const statusId = await Status.findOne({ state: { $eq: status } });
     const targetOrder = await Order.findById(id).populate("status");
 
-    if (roleLabel == "user"){
+    if (roleLabel == "user") {
       if (targetOrder.status.state != "orderChecking" && status != "aborted") return errors.tooLatetoUpdate;
       if (status == "aborted" && targetOrder.status.state == "delivered") return errors.tooLatetoUpdate;
       if (targetOrder.clientId != userId) return errors.invalidPermissions;
