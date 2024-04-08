@@ -24,6 +24,7 @@ module.exports = {
                         { methods: ["POST"], route: "/:id/deliveryman-checked", roles: ["deliveryman", "admin"] },
                         { methods: ["POST"], route: "/:id/prepared", roles: ["restaurantOwner", "admin"] },
                         { methods: ["POST"], route: "/:id/delivered", roles: ["deliveryman", "admin"] },
+                        { methods: ["POST"], route: "/:id/abort", roles: ["user", "restaurantOwner", "admin"] },
                         { methods: ["GET"], route: "/:id", roles: ["restaurantOwner", "user", "deliveryman", "admin", "salesman"] },
                         { methods: ["PATCH", "PUT", "DELETE"], route: "/:id", roles: ["user", "admin"] },
                         // Status

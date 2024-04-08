@@ -41,6 +41,22 @@ module.exports = {
       }
     }
   },
+  schemaAbortOrder: {
+    schema: {
+      description: 'Abort the order',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      }
+    }
+  },
   schemaFinalStep: {
     schema: {
       description: 'Validate delivery',
