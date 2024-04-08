@@ -1,6 +1,5 @@
 const orderProperties = {
-  articleIdList: { type: "array", items: { type: "string" } },
-  date: { type: "string" },
+  articleList: { type: "array", items: { type: "string" } },
   clientCode: { type: "string" },
   status: { type: "string" },
   restaurantId: { type: "string" },
@@ -18,8 +17,69 @@ module.exports = {
       tags: ["Order"],
       body: {
         type: 'object',
-        required: ["articleIdList", "date", "clientCode", "restaurantId", "clientId"],
-        properties: orderProperties
+        required: ["articleList", "restaurantId"],
+        properties: {
+          articleList: { type: "array", items: { type: "string" } },
+          restaurantId: { type: "string" }
+        }
+      }
+    }
+  },
+  schemaNextStep: {
+    schema: {
+      description: 'Go to the next step',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      }
+    }
+  },
+  schemaAbortOrder: {
+    schema: {
+      description: 'Abort the order',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      }
+    }
+  },
+  schemaFinalStep: {
+    schema: {
+      description: 'Validate delivery',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      },
+      body: {
+        type: 'object',
+        required: ["code"],
+        properties: {
+          code: {
+            type: 'string',
+            description: 'code'
+          }
+        }
       }
     }
   },
@@ -39,7 +99,7 @@ module.exports = {
       },
       body: {
         type: 'object',
-        required: ["articleList", "date", "clientCode", "status", "restaurantId", "clientId"],
+        required: ["articleList", "clientCode", "status", "restaurantId", "clientId"],
         properties: orderProperties
       }
     }
@@ -72,7 +132,7 @@ module.exports = {
       query: {
         restaurantid: {
           type: 'string',
-          description: 'Client id'
+          description: 'restaurant id'
         },
         clienttid: {
           type: 'string',
@@ -80,8 +140,12 @@ module.exports = {
         },
         deliverymanid: {
           type: 'string',
-          description: 'Client id'
+          description: 'deliveryman id'
         },
+        statusid: {
+          type: 'string',
+          description: 'status id'
+        }
       }
     }
   },
