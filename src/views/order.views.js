@@ -1,7 +1,8 @@
 const { isValidObjectId } = require("mongoose");
 const { Order } = require("../models/order.model");
 const { Status } = require("../models/status.model");
-
+const { Restaurant } = require("../models/restaurant.model");
+Restaurant
 const errors = {
   invalidId: (() => {
     const err = Error("Invalid Id format");
@@ -27,7 +28,17 @@ const errors = {
     const err = Error("You do not have the right to alter this order");
     err.statusCode = 403;
     return err;
-  })()
+  })(),
+  wrongCode: (() => {
+    const err = Error("Client code does not match");
+    err.statusCode = 400;
+    return err;
+  })(),
+  wrongCurrentStatus: (() => {
+    const err = Error("You can't do that.");
+    err.statusCode = 400;
+    return err;
+  })(),
 }
 
 function formatResponseToRole(rolelabel) {
@@ -70,25 +81,91 @@ module.exports = {
   getOrderbyId: async (req, res) => {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
-
     const format = formatResponseToRole(roleLabel);
-    const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
-    filter["id"] = id;
+    const targetOrder = await Order.findById(id, format);
 
+    if (roleLabel == "restaurantOwner") {
+      const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId)
+      if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
+    }
     if (!isValidObjectId(id)) return errors.invalidId;
+    if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
+    if (roleLabel == "deleveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
 
-    const orders = await Order.findById(filter, format);
-    return orders;
+    return targetOrder;
   },
   getOrders: async (req, res) => {
     const { userId, roleLabel, restaurantid, clienttid, deliverymanid, statusid } = req.query;
-
     const format = formatResponseToRole(roleLabel);
     const filter = filterQueryToRole(userId, roleLabel, { restaurantid, clienttid, deliverymanid });
+
     if (statusid) filter["statusId"] = statusid;
 
     const allOrders = await Order.find(filter, format);
     return allOrders;
+  },
+  restaurantCheck: async (req, res) => {
+    const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+    const targetOrder = await Order.findById(id);
+    const prevStep = await Status.findOne({ state: { $eq: "orderChecking" } });
+
+    if (roleLabel == "restaurantOwner") {
+      const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
+      if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
+    }
+    if (!prevStep) return errors.statusNotFound;
+    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+
+    req.body = {};
+    req.body["status"] = "deliveryChecking";
+    return module.exports.patchOrder(req, res);
+  },
+  deliverymanCheck: async (req, res) => {
+    const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+    const targetOrder = await Order.findById(id);
+    const prevStep = await Status.findOne({ state: { $eq: "deliveryChecking" } });
+
+    if (!prevStep) return errors.statusNotFound;
+    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+
+    req.body = {};
+    req.body["status"] = "preparing";
+    req.body["deliverymanId"] = userId;
+    return module.exports.patchOrder(req, res);
+  },
+  restaurantPrepared: async (req, res) => {
+    const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+    const targetOrder = await Order.findById(id);
+    const prevStep = await Status.findOne({ state: { $eq: "preparing" } });
+
+    if (roleLabel == "restaurantOwner") {
+      const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
+      if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
+    }
+    if (!prevStep) return errors.statusNotFound;
+    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+
+    req.body = {};
+    req.body["status"] = "delivering";
+    return module.exports.patchOrder(req, res);
+  },
+  deliverymanDelivered: async (req, res) => {
+    const { id } = req.params;
+    const { userId, roleLabel } = req.query;
+    const targetOrder = await Order.findById(id);
+    const prevStep = await Status.findOne({ state: { $eq: "delivering" } });
+    console.log(targetOrder.deliverymanId,userId);
+    if (roleLabel == "deliveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
+    if (!prevStep) return errors.statusNotFound;
+    if (!targetOrder.statusId.equals(prevStep._id)) return errors.wrongCurrentStatus;
+    if (req.body.code != targetOrder.clientCode) return errors.wrongCode;
+
+    req.body = {};
+    req.body["status"] = "delivered";
+    return module.exports.patchOrder(req, res);
   },
   patchOrder: async (req, res) => {
     const { id } = req.params;
@@ -138,11 +215,14 @@ module.exports = {
     return 'Order deleted successfully';
   },
   createOrder: async (req, res) => {
-    const { articleIdList, date, clientCode, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleIdList, date, clientCode, restaurantId, deliverymanId } = req.body;
     const validatedDate = new Date(date);
     const status = req.body.status ?? "orderChecking";
+    const { userId, roleLabel } = req.query;
     const statusId = await Status.findOne({ state: { $eq: status } });
 
+    let clientId = req.body.clientId;
+    if (roleLabel == "user") clientId = userId;
     if (!date || !clientCode || !restaurantId || !clientId) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;

@@ -7,7 +7,7 @@ const orderModel = new mongoose.Schema({
   statusId: mongoose.Schema.ObjectId,
   restaurantId: mongoose.Schema.ObjectId,
   clientId: Number,
-  deliverymanId: mongoose.Schema.ObjectId
+  deliverymanId: Number
 });
 const Order = mongoose.model('Order', orderModel);
 

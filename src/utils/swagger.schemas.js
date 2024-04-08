@@ -18,8 +18,50 @@ module.exports = {
       tags: ["Order"],
       body: {
         type: 'object',
-        required: ["articleIdList", "date", "clientCode", "restaurantId", "clientId"],
+        required: ["articleIdList", "date", "clientCode", "restaurantId"],
         properties: orderProperties
+      }
+    }
+  },
+  schemaNextStep: {
+    schema: {
+      description: 'Go to the next step',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      }
+    }
+  },
+  schemaFinalStep: {
+    schema: {
+      description: 'Validate delivery',
+      tags: ["Order"],
+      params: {
+        type: 'object',
+        required: ["id"],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Order id'
+          }
+        }
+      },
+      body: {
+        type: 'object',
+        required: ["code"],
+        properties: {
+          code: {
+            type: 'string',
+            description: 'code'
+          }
+        }
       }
     }
   },
