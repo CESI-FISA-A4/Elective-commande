@@ -88,7 +88,7 @@ module.exports = {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
     const format = formatResponseToRole(roleLabel);
-    const targetOrder = await Order.findById(id, format).populate("status").populate("articleList");
+    const targetOrder = await Order.findById(id, format).populate("status").populate("articleList.article");
 
     if (roleLabel == "restaurantOwner") {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId)
@@ -102,7 +102,6 @@ module.exports = {
       price += selectedArticle?.article?.price * selectedArticle.quantity;
     });
     targetOrder.set("totalPrice", price, { strict: false });
-    targetOrder.depopulate("articleList");
     return targetOrder;
   },
   getOrders: async (req, res) => {
