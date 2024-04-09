@@ -1,7 +1,8 @@
 const { schemaPutOrders, schemaPatchOrders, schemaCreateOrders, schemaGetOrders, schemaGetOrderbyId, schemaDeleteOrder, schemaNextStep, schemaFinalStep, schemaAbortOrder } = require("../utils/swagger.schemas");
-const { createOrder, deleteOrder, getOrders, getOrderbyId, patchOrder, putOrder, restaurantCheck, deliverymanCheck, restaurantPrepared, deliverymanDelivered, cancelOrder } = require("../views/order.views");
+const { createOrder, deleteOrder, getOrders, getOrderbyId, patchOrder, putOrder, restaurantCheck, deliverymanCheck, restaurantPrepared, deliverymanDelivered, cancelOrder, ping } = require("../views/order.views");
 
 const orderRoutes = function (instance, opts, next) {
+  instance.get('/ping', ping)
   instance.get('/', schemaGetOrders, getOrders);
   instance.post('/', schemaCreateOrders, createOrder);
   instance.post('/:id/abort', schemaAbortOrder, cancelOrder);

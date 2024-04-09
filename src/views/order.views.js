@@ -84,6 +84,9 @@ function filterQueryToRole(userId, roleLabel, query) {
   }
 }
 module.exports = {
+  ping: async(req,res)=>{
+    return;
+  },
   getOrderbyId: async (req, res) => {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
