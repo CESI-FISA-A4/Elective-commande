@@ -14,7 +14,7 @@ const orderProperties = {
   restaurantId: { type: "string" },
   clientId: { type: "number" },
   deliverymanId: { type: "number" },
-  address : {type: "string"}
+  address: { type: "string" }
 }
 const statusProperties = {
   state: { type: "string" }
@@ -39,7 +39,8 @@ module.exports = {
               }
             }
           },
-          restaurantId: { type: "string" }
+          restaurantId: { type: "string" },
+          address: { type: "string" }
         }
       }
     }
