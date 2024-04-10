@@ -84,7 +84,7 @@ function filterQueryToRole(userId, roleLabel, query) {
   }
 }
 module.exports = {
-  ping: async(req,res)=>{
+  ping: async (req, res) => {
     return;
   },
   getOrderbyId: async (req, res) => {
@@ -254,7 +254,7 @@ module.exports = {
     if (!restaurantId || !clientId || !articleList) return errors.missingRequiredParams;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.create({ articleList, date: formatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
-    return 'Order created successfully';
+    const newOrder = await Order.create({ articleList, date: formatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
+    return { msg: 'Order created successfully', id: newOrder._id };
   }
 }
