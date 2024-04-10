@@ -144,7 +144,7 @@ module.exports = {
 
     const targetOrder = await Order.findById(id).populate("status");
 
-    if (targetOrder.status.state != "orderChecking") return errors.wrongCurrentStatus;
+    if (targetOrder.status.state != "deliveryChecking") return errors.wrongCurrentStatus;
 
     req.body = {};
     req.body["status"] = "preparing";
