@@ -10,7 +10,8 @@ const orderModel = new mongoose.Schema({
   date: { type: String, default: Date },
   clientCode: String,
   status: { type: mongoose.Schema.ObjectId, ref: "Status" },
-  restaurantId: mongoose.Schema.ObjectId,
+  restaurantId: { type: mongoose.Schema.ObjectId, ref: "Restaurant" },
+  address: String,
   clientId: Number,
   deliverymanId: Number
 });
