@@ -19,6 +19,7 @@ module.exports = {
                     routeProtections: [
                         // Orders
                         { methods: ["GET"], route: "/", roles: ["restaurantOwner", "user", "deliveryman", "admin", "salesman"] },
+                        { methods: ["POST"], route: "/available", roles: ["deliveryman", "admin"] },
                         { methods: ["POST"], route: "/", roles: ["user", "admin"] },
                         { methods: ["POST"], route: "/:id/restaurant-checked", roles: ["restaurantOwner", "admin"] },
                         { methods: ["POST"], route: "/:id/deliveryman-checked", roles: ["deliveryman", "admin"] },
