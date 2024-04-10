@@ -226,7 +226,7 @@ module.exports = {
         properties: {
           id: {
             type: 'string',
-            description: 'Order id'
+            description: 'Status id'
           }
         }
       },
@@ -242,7 +242,7 @@ module.exports = {
         properties: {
           id: {
             type: 'string',
-            description: 'Order id'
+            description: 'Status id'
           }
         }
       },
@@ -263,7 +263,7 @@ module.exports = {
         properties: {
           id: {
             type: 'string',
-            description: 'Order id'
+            description: 'Status id'
           }
         }
       }
