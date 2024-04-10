@@ -202,7 +202,7 @@ module.exports = {
     const targetOrder = await Order.findById(id).populate("status");
 
     if (roleLabel == "user") {
-      if (targetOrder.status.state != "orderChecking" && status != "aborted") return errors.tooLatetoUpdate;
+      if (targetOrder.status.state != "orderCreated" && status != "aborted") return errors.tooLatetoUpdate;
       if (status == "aborted" && targetOrder.status.state == "delivered") return errors.tooLatetoUpdate;
       if (targetOrder.clientId != userId) return errors.invalidPermissions;
     }
@@ -223,7 +223,7 @@ module.exports = {
     const statusId = await Status.findOne({ state: { $eq: status } });
     const targetOrder = await Order.findById(id).populate("status");
 
-    if (roleLabel == "user" && targetOrder.status.state != "orderChecking") return errors.tooLatetoUpdate;
+    if (roleLabel == "user" && targetOrder.status.state != "orderCreated"  && status != "aborted") return errors.tooLatetoUpdate;
     if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (!isValidObjectId(id)) return errors.invalidId;
     if (!articleList || !date || !clientCode || !status || !clientId || !deliverymanId || !address) return errors.missingRequiredParams;
