@@ -53,7 +53,7 @@ function formatResponseToRole(rolelabel) {
       return {};
     case "admin":
       return {};
-    case "deleveryman":
+    case "deliveryman":
       return { clientCode: 0 };
     case "restaurantOwner":
       return { clientCode: 0 };
@@ -72,7 +72,7 @@ function filterQueryToRole(userId, roleLabel, query) {
   switch (roleLabel) {
     case "user":
       return { clientId: { $eq: userId } };
-    case "deleveryman":
+    case "deliveryman":
       return { deliverymanId: { $eq: userId } };
     case "restaurantOwner":
       return { restaurantId: { $eq: query.restaurantid } };
@@ -99,7 +99,7 @@ module.exports = {
     }
     if (!isValidObjectId(id)) return errors.invalidId;
     if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
-    if (roleLabel == "deleveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
+    if (roleLabel == "deliveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
     let price = 0;
     targetOrder.articleList.map((selectedArticle) => {
       price += selectedArticle?.article?.price * selectedArticle.quantity;
