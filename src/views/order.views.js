@@ -128,12 +128,11 @@ module.exports = {
     const { id } = req.params;
     const { userId, roleLabel } = req.query;
     const targetOrder = await Order.findById(id).populate("status");
-
     if (roleLabel == "restaurantOwner") {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
       if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
     }
-    if (targetOrder.status.state != "orderChecking") return errors.statusNotFound;
+    if (targetOrder.status.state != "orderChecking") return errors.wrongCurrentStatus;
 
     req.body = {};
     req.body["status"] = "deliveryChecking";
@@ -145,7 +144,7 @@ module.exports = {
 
     const targetOrder = await Order.findById(id).populate("status");
 
-    if (targetOrder.status.state != "orderChecking") return errors.statusNotFound;
+    if (targetOrder.status.state != "orderChecking") return errors.wrongCurrentStatus;
 
     req.body = {};
     req.body["status"] = "preparing";
@@ -163,7 +162,7 @@ module.exports = {
       const targetRestaurant = await Restaurant.findById(targetOrder.restaurantId);
       if (targetRestaurant.restaurantOwnerId != userId) return errors.invalidPermissions;
     }
-    if (targetOrder.status.state != "preparing") return errors.statusNotFound;
+    if (targetOrder.status.state != "preparing") return errors.wrongCurrentStatus;
 
     req.body = {};
     req.body["status"] = "delivering";
@@ -176,7 +175,7 @@ module.exports = {
     const targetOrder = await Order.findById(id).populate("status");
 
     if (roleLabel == "deliveryman" && targetOrder.deliverymanId != userId) return errors.invalidPermissions;
-    if (targetOrder.status.state != "delivering") return errors.statusNotFound;
+    if (targetOrder.status.state != "delivering") return errors.wrongCurrentStatus;
     if (req.body.code != targetOrder.clientCode) return errors.wrongCode;
 
     req.body = {};
@@ -188,9 +187,14 @@ module.exports = {
     req.body["status"] = "aborted";
     return module.exports.patchOrder(req, res);
   },
+  validateOrder: async (req, res) => {
+    req.body = {};
+    req.body["status"] = "orderChecking";
+    return module.exports.patchOrder(req, res);
+  },
   patchOrder: async (req, res) => {
     const { id } = req.params;
-    const { articleList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleList, date, clientCode, status, clientId, deliverymanId, address } = req.body;
     const { userId, roleLabel } = req.query;
 
     const validatedDate = new Date(date);
@@ -203,16 +207,16 @@ module.exports = {
       if (targetOrder.clientId != userId) return errors.invalidPermissions;
     }
     if (!isValidObjectId(id)) return errors.invalidId;
-    if (!articleList && !date && !clientCode && !status && !restaurantId && !clientId && !deliverymanId) return errors.missingRequiredParams;
+    if (!articleList && !date && !clientCode && !status && !clientId && !deliverymanId && !address) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status: statusId, clientId, deliverymanId });
     return 'Order updated successfully';
   },
   putOrder: async (req, res) => {
     const { id } = req.params;
-    const { articleList, date, clientCode, status, restaurantId, clientId, deliverymanId } = req.body;
+    const { articleList, date, clientCode, status, clientId, deliverymanId, address } = req.body;
     const { userId, roleLabel } = req.query;
 
     const validatedDate = new Date(date);
@@ -222,11 +226,11 @@ module.exports = {
     if (roleLabel == "user" && targetOrder.status.state != "orderChecking") return errors.tooLatetoUpdate;
     if (roleLabel == "user" && targetOrder.clientId != userId) return errors.invalidPermissions;
     if (!isValidObjectId(id)) return errors.invalidId;
-    if (!articleList || !date || !clientCode || !status || !restaurantId || !clientId || !deliverymanId) return errors.missingRequiredParams;
+    if (!articleList || !date || !clientCode || !status || !clientId || !deliverymanId || !address) return errors.missingRequiredParams;
     if (date && (!validatedDate || validatedDate == "Invalid Date")) return errors.invalidDateFormat;
     if (status && !statusId) return errors.statusNotFound;
 
-    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, restaurantId, clientId, deliverymanId });
+    await Order.findByIdAndUpdate(id, { validatedDate, clientCode, status, clientId, deliverymanId, address });
     return 'Order updated successfully';
   },
   deleteOrder: async (req, res) => {
@@ -241,8 +245,8 @@ module.exports = {
     return 'Order deleted successfully';
   },
   createOrder: async (req, res) => {
-    const { articleList, restaurantId, deliverymanId } = req.body;
-    const status = req.body.status ?? "orderChecking";
+    const { articleList, restaurantId, deliverymanId, address } = req.body;
+    const status = req.body.status ?? "orderCreated";
     const { userId, roleLabel } = req.query;
     const statusId = await Status.findOne({ state: { $eq: status } });
 
@@ -251,10 +255,26 @@ module.exports = {
     const clientCode = Math.random().toString(36).substring(2, 12);
     let clientId = req.body.clientId;
     if (roleLabel == "user") clientId = userId;
-    if (!restaurantId || !clientId || !articleList) return errors.missingRequiredParams;
+    if (!restaurantId || !clientId || !articleList || !address) return errors.missingRequiredParams;
     if (status && !statusId) return errors.statusNotFound;
 
-    const newOrder = await Order.create({ articleList, date: formatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId });
+    const newOrder = await Order.create({ articleList, date: formatedDate, clientCode, status: statusId, restaurantId, clientId, deliverymanId, address });
     return { msg: 'Order created successfully', id: newOrder._id };
+  },
+  getAvailableOrders : async (req,res) =>{
+    const availableStatus = await Status.findOne({state: {$eq: "deliveryChecking"}});
+    const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId");
+    const formatedList = []
+    orderList.map((order)=>{
+      formatedList.push(
+        {
+          id: order._id,
+          nomResto: order.restaurantId.name,
+          addressResto: order.restaurantId.address,
+          addressLivraison: order.address
+        }
+      )
+    })
+    return formatedList;
   }
 }

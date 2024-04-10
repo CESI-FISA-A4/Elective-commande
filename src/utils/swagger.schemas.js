@@ -13,7 +13,8 @@ const orderProperties = {
   status: { type: "string" },
   restaurantId: { type: "string" },
   clientId: { type: "number" },
-  deliverymanId: { type: "number" }
+  deliverymanId: { type: "number" },
+  address : {type: "string"}
 }
 const statusProperties = {
   state: { type: "string" }
@@ -26,7 +27,7 @@ module.exports = {
       tags: ["Order"],
       body: {
         type: 'object',
-        required: ["articleList", "restaurantId"],
+        required: ["articleList", "restaurantId", "address"],
         properties: {
           articleList: {
             type: "array", items: {
@@ -117,7 +118,7 @@ module.exports = {
       },
       body: {
         type: 'object',
-        required: ["articleList", "clientCode", "status", "restaurantId", "clientId"],
+        required: ["articleList", "address"],
         properties: orderProperties
       }
     }
