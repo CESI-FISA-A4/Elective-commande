@@ -278,10 +278,13 @@ module.exports = {
     return formatedList;
   },
   getPreparedOrders : async (req,res) =>{
+    const { userId, roleLabel } = req.query;
     const availableStatus = await Status.findOne({state: {$eq: "delivering"}});
-    const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId");
+    const orderList = await Order.find({status : {$eq: availableStatus._id}})
+      .populate("restaurantId");
     const formatedList = []
     orderList.map((order)=>{
+      if (order.deliverymanId != userId) return;
       formatedList.push(
         {
           id: order._id,
@@ -294,13 +297,16 @@ module.exports = {
     return formatedList;
   },
   getCreatedOrders : async (req,res) =>{
+    const { userId, roleLabel } = req.query;
     const availableStatus = await Status.findOne({state: {$eq: "orderCreated"}});
     const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId").populate("articleList.article");
     const formatedList = []
     orderList.map((order)=>{
+      if (roleLabel=="restaurantOwner" && order.restaurantId?.restaurantOwnerId != userId) return;
       formatedList.push(
         {
           id: order._id,
+          restaurant: order.restaurantId.name,
           articleList: order.articleList
         }
       )
