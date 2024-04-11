@@ -298,7 +298,7 @@ module.exports = {
   },
   getCreatedOrders : async (req,res) =>{
     const { userId, roleLabel } = req.query;
-    const availableStatus = await Status.findOne({state: {$eq: "orderCreated"}});
+    const availableStatus = await Status.findOne({state: {$eq: "orderChecking"}});
     const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId").populate("articleList.article");
     const formatedList = []
     orderList.map((order)=>{
