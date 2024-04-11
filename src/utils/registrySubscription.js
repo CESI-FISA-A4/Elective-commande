@@ -4,7 +4,7 @@ require('dotenv').config();
 module.exports = {
     subscribeToApiGateway: async () => {
         // Order
-        try {
+        // try {
             const response = await axios({
                 method: "POST",
                 baseURL: `http://${process.env.GATEWAY_HOST}:${process.env.GATEWAY_PORT}`,
@@ -37,8 +37,8 @@ module.exports = {
                     ]
                 }
             });
-        } catch (error) {
-            console.log(error);
-        }
+        // } catch (error) {
+        //     console.log(error);
+        // }
     }
 }
