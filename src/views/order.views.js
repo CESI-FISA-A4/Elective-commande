@@ -114,7 +114,7 @@ module.exports = {
 
     if (statusid) filter["statusId"] = statusid;
 
-    const allOrders = await Order.find(filter, format).populate("status").populate("articleList.article");
+    const allOrders = await Order.find(filter, format).populate("status").populate("articleList.article").sort({_id:-1});
     allOrders.map((order) => {
       let price = 0;
       order.articleList.map((selectedArticle) => {
