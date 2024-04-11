@@ -203,7 +203,7 @@ module.exports = {
 
     if (roleLabel == "user") {
       if (targetOrder.status.state != "orderCreated" && status != "aborted") return errors.tooLatetoUpdate;
-      if (status == "aborted" && targetOrder.status.state == "delivered") return errors.tooLatetoUpdate;
+      if (status == "aborted" && (targetOrder.status.state == "delivered" || targetOrder.status.state == "aborted")) return errors.tooLatetoUpdate;
       if (targetOrder.clientId != userId) return errors.invalidPermissions;
     }
     if (!isValidObjectId(id)) return errors.invalidId;
@@ -272,6 +272,36 @@ module.exports = {
           nomResto: order.restaurantId.name,
           addressResto: order.restaurantId.address,
           addressLivraison: order.address
+        }
+      )
+    })
+    return formatedList;
+  },
+  getPreparedOrders : async (req,res) =>{
+    const availableStatus = await Status.findOne({state: {$eq: "delivering"}});
+    const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId");
+    const formatedList = []
+    orderList.map((order)=>{
+      formatedList.push(
+        {
+          id: order._id,
+          nomResto: order.restaurantId.name,
+          addressResto: order.restaurantId.address,
+          addressLivraison: order.address
+        }
+      )
+    })
+    return formatedList;
+  },
+  getCreatedOrders : async (req,res) =>{
+    const availableStatus = await Status.findOne({state: {$eq: "orderCreated"}});
+    const orderList = await Order.find({status : {$eq: availableStatus._id}}).populate("restaurantId").populate("articleList.article");
+    const formatedList = []
+    orderList.map((order)=>{
+      formatedList.push(
+        {
+          id: order._id,
+          articleList: order.articleList
         }
       )
     })

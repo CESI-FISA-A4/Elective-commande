@@ -20,6 +20,8 @@ module.exports = {
                         // Orders
                         { methods: ["GET"], route: "/", roles: ["restaurantOwner", "user", "deliveryman", "admin", "salesman"] },
                         { methods: ["GET"], route: "/available", roles: ["deliveryman", "admin"] },
+                        { methods: ["GET"], route: "/prepared", roles: ["deliveryman", "admin"] },
+                        { methods: ["GET"], route: "/created", roles: ["restaurantOwner", "admin"] },
                         { methods: ["POST"], route: "/", roles: ["user", "admin"] },
                         { methods: ["POST"], route: "/:id/client-validate", roles: ["user", "admin"] },
                         { methods: ["POST"], route: "/:id/restaurant-checked", roles: ["restaurantOwner", "admin"] },
