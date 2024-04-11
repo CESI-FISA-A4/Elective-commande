@@ -3,5 +3,4 @@ WORKDIR /app
 COPY . .
 RUN npm install
 EXPOSE 3002
-CMD ["node", "index.js"]
-# CMD ["ls", "-l"]
+CMD ["npm", "run", "start"]
